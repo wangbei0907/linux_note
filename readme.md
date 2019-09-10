@@ -224,3 +224,65 @@
       - 从文本读取 cat test |while read line  将文件的数据传给read
         do
         done 
+   - stdout 代表shell的标准输出
+     - >> 重定向符号，通常会显示到显示器的所有输出会被shell重定向到指定的重定向文件
+      例如who >> test ,会把who的结果追加到test文件
+   - stderr 通过特殊的stderr文件描述符来处理错误消息，shell或shell中运行的程序和脚本出错时生成的错误消息都会发送到这个位置、
+   - 重定向错误
+     - stderr   ls -al badfile 2> test ,stderr文件描述符被设成2，可以选择只重定向错误消息，将该文件描述符值放在重定向符号前
+     错误信息会保存在test中，不会输出到屏幕上。
+     - 重定向错误和数据
+      如果想重定向错误和正常输出，必须用两个重定向符号。需要在符号前面放上待重定向数据所对应的文件描述符，然后指向用于保存数据的输出文件。
+      ls -al test test2 test3 badtest 2> test6 1>test7
+      错误信息输出到了test6 正常数据输出到test7
+      分离了正常输出数据和错误消息
+      ls -al test test2 test3 badtest &> test7 如果将STDERR和STDOUT输出重定向到一个文件使用&>
+      当使用&>符时，命令生成的所有输出都会发送到同一位置，包括数据和错误。
+   - 临时重定向
+   将单独的一行输出重定向到STDERR,需要在文件描述符数字之前加一个&，
+   echo "this is an error" >&2 echo "this is nomal ouput"
+   ./test8 2> test9 结果是this is an normal output，STDOUT显示的文本显示在屏幕上，而发送给STRERR的echo语句则重定向到了输出文件test9
+   此方式适合在搅拌中生成错误信息、
+  - 永久重定向
+   当有大量数据要重定向时， excec告诉shell在脚本执行期间重定向某个特定文件描述符。重定向每个echo语句会很繁琐，就可以用exec
+    exec 2>testerror exec 1>testout
+  - 在脚本中重定向输入 exec命令允许你讲stdin重定向到linux中。
+  exec 0< testfile ,从testfile中获得输入数据
+   while read line 
+     do
+        echo "line #$count:$line" 
+     done
+   - 创建自己的重定向
+     - 创建输出文件描述符  
+      exec 3>test3out 将文件描述符重定向另一个文件追加到test3out
+而不是创建一个新文件、
+   - 重定向文件描述符
+     stdout重定向到另一个文件描述符，再利用该文件描述符重定向回stdout
+     exec 3>&1  //脚本将文件描述符3重定向到文件描述符1的当前位置
+     exec 1>test14out //将stdout重定向到文件test14out,shell会将发送给stdout的输出直接重定向到输出文件，但是文件描述符3依然指向stdout原来的位置（显示器）
+     echo "this is out file" 
+     exec 1>&3  //脚本将stdout重定向到文件描述符3的当前位置，stdout又指向的它原来的位置显示器。
+     echo "now thing should be back to normal"
+   - 创建输入文件描述符
+   exec 6<&0 //文件描述符6用来保存strin的位置，
+   exec 0< testfile //然后脚本将stdin重定向到一个文件
+   while read line
+    do echo "line #$count: $line"
+    count=$[ $count+1 ]
+    done 
+    exec 0<&6 //脚本会将stdin重定向到文件描述符6，从而将stdin恢复到原先的位置
+    read -p "are you done now?" answer
+    case $answer in
+    y|Y) echo "goodbye"
+    N|n) echo "sorry this is the end"
+   - 创建读写文件描述符
+   exec 3<> testfile 将文件描述符3分配给文件testfile以进行读写，
+   read line <&3它通过分配好的文件描述符，使用read命令读取文件中的第一行，然后显示在
+   echo "this is a test line "<&3 
+   - 关闭文件描述符
+   exec 3>&- 该语句会关闭文件描述符3 不再在脚本中使用它
+  -列出打开的文件描述符
+   lsof
+   
+     
+  
