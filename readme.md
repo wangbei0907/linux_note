@@ -281,8 +281,10 @@
    echo "this is a test line "<&3 
    - 关闭文件描述符
    exec 3>&- 该语句会关闭文件描述符3 不再在脚本中使用它
-  -列出打开的文件描述符
+  - 列出打开的文件描述符
    lsof
-   
+  - 清除日志文件的常用方法
+   cat /dev/null > log
+   cat log 
      
   
