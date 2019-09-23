@@ -4,6 +4,7 @@
   - [shell类型](#shell类型)
   - [shell的内建命令](#shell的内建命令)
   - [结构化命令](#结构化命令)
+  - [创建函数](#创建函数命令)
   - ####linux命令分类
     - cd  指向文件目录列表  
 	- ls –l 查看文件基本信息
@@ -89,6 +90,7 @@
    - chmod u+x filname
    - chown options owner[.group] file改变文件的属主
    - chgrp shared newfile  更过文件或目录的默认属组
+   - usermod -aG groupname username 修改用户组，归档到某个组里
    ### 管理文件系统
    - fdisk /dev/sdb 创建分区
    ### 安装软件程序
@@ -214,6 +216,7 @@
       - -c生成一个计数
       - -d 指定一个目录 -e 扩展一个对象 -f 指定读入数据的文件 -h显示命令的帮助信息 -i忽略文本大小写
       - -l产生输出的长格式文本
+     ### 呈现数据
      - 获得用户输入
       - 基本的读取   read命令会将数据放进一个变量 
       echo -n 该选项不会在字符串末尾输出换行符，允许脚本用户紧跟其后输入数据，而不是下一行。
@@ -224,11 +227,11 @@
       - 从文本读取 cat test |while read line  将文件的数据传给read
         do
         done 
-   - stdout 代表shell的标准输出
-     - >> 重定向符号，通常会显示到显示器的所有输出会被shell重定向到指定的重定向文件
+     - stdout 代表shell的标准输出
+       - >> 重定向符号，通常会显示到显示器的所有输出会被shell重定向到指定的重定向文件
       例如who >> test ,会把who的结果追加到test文件
-   - stderr 通过特殊的stderr文件描述符来处理错误消息，shell或shell中运行的程序和脚本出错时生成的错误消息都会发送到这个位置、
-   - 重定向错误
+     - stderr 通过特殊的stderr文件描述符来处理错误消息，shell或shell中运行的程序和脚本出错时生成的错误消息都会发送到这个位置、
+     - 重定向错误
      - stderr   ls -al badfile 2> test ,stderr文件描述符被设成2，可以选择只重定向错误消息，将该文件描述符值放在重定向符号前
      错误信息会保存在test中，不会输出到屏幕上。
      - 重定向错误和数据
@@ -238,45 +241,45 @@
       分离了正常输出数据和错误消息
       ls -al test test2 test3 badtest &> test7 如果将STDERR和STDOUT输出重定向到一个文件使用&>
       当使用&>符时，命令生成的所有输出都会发送到同一位置，包括数据和错误。
-   - 临时重定向
-   将单独的一行输出重定向到STDERR,需要在文件描述符数字之前加一个&，
-   echo "this is an error" >&2 echo "this is nomal ouput"
-   ./test8 2> test9 结果是this is an normal output，STDOUT显示的文本显示在屏幕上，而发送给STRERR的echo语句则重定向到了输出文件test9
-   此方式适合在搅拌中生成错误信息、
-  - 永久重定向
-   当有大量数据要重定向时， excec告诉shell在脚本执行期间重定向某个特定文件描述符。重定向每个echo语句会很繁琐，就可以用exec
-    exec 2>testerror exec 1>testout
-  - 在脚本中重定向输入 exec命令允许你讲stdin重定向到linux中。
-  exec 0< testfile ,从testfile中获得输入数据
-   while read line 
-     do
-        echo "line #$count:$line" 
-     done
-   - 创建自己的重定向
-     - 创建输出文件描述符  
-      exec 3>test3out 将文件描述符重定向另一个文件追加到test3out
-而不是创建一个新文件、
-   - 重定向文件描述符
+     - 临时重定向
+     将单独的一行输出重定向到STDERR,需要在文件描述符数字之前加一个&，
+     echo "this is an error" >&2 echo "this is nomal ouput"
+     ./test8 2> test9 结果是this is an normal output，STDOUT显示的文本显示在屏幕上，而发送给STRERR的echo语句则重定向到了输出文件test9
+     此方式适合在搅拌中生成错误信息、
+     - 永久重定向
+       当有大量数据要重定向时， excec告诉shell在脚本执行期间重定向某个特定文件描述符。重定向每个echo语句会很繁琐，就可以用exec
+        exec 2>testerror exec 1>testout
+      - 在脚本中重定向输入 exec命令允许你讲stdin重定向到linux中。
+      exec 0< testfile ,从testfile中获得输入数据
+       while read line 
+         do
+            echo "line #$count:$line" 
+         done
+        - 创建自己的重定向
+        - 创建输出文件描述符  
+          exec 3>test3out 将文件描述符重定向另一个文件追加到test3out
+          而不是创建一个新文件、
+     - 重定向文件描述符
      stdout重定向到另一个文件描述符，再利用该文件描述符重定向回stdout
      exec 3>&1  //脚本将文件描述符3重定向到文件描述符1的当前位置
      exec 1>test14out //将stdout重定向到文件test14out,shell会将发送给stdout的输出直接重定向到输出文件，但是文件描述符3依然指向stdout原来的位置（显示器）
      echo "this is out file" 
      exec 1>&3  //脚本将stdout重定向到文件描述符3的当前位置，stdout又指向的它原来的位置显示器。
      echo "now thing should be back to normal"
-   - 创建输入文件描述符
-   exec 6<&0 //文件描述符6用来保存strin的位置，
-   exec 0< testfile //然后脚本将stdin重定向到一个文件
-   while read line
-    do echo "line #$count: $line"
-    count=$[ $count+1 ]
-    done 
-    exec 0<&6 //脚本会将stdin重定向到文件描述符6，从而将stdin恢复到原先的位置
-    read -p "are you done now?" answer
-    case $answer in
-    y|Y) echo "goodbye"
-    N|n) echo "sorry this is the end"
-   - 创建读写文件描述符
-   exec 3<> testfile 将文件描述符3分配给文件testfile以进行读写，
+     - 创建输入文件描述符
+      exec 6<&0 //文件描述符6用来保存strin的位置，
+      exec 0< testfile //然后脚本将stdin重定向到一个文件
+        while read line
+        do echo "line #$count: $line"
+        count=$[ $count+1 ]
+        done 
+        exec 0<&6 //脚本会将stdin重定向到文件描述符6，从而将stdin恢复到原先的位置
+        read -p "are you done now?" answer
+        case $answer in
+        y|Y) echo "goodbye"
+        N|n) echo "sorry this is the end"
+     - 创建读写文件描述符
+    exec 3<> testfile 将文件描述符3分配给文件testfile以进行读写，
    read line <&3它通过分配好的文件描述符，使用read命令读取文件中的第一行，然后显示在
    echo "this is a test line "<&3 
    - 关闭文件描述符
@@ -286,5 +289,52 @@
   - 清除日志文件的常用方法
    cat /dev/null > log
    cat log 
-     
-  
+ ### 信号
+ - 信号
+   - Linux信号 
+   1 SIGHUP 挂起进程
+   2 SIGINT 终止进程
+   3 SIGQUIT 停止进程
+   4 SIGKILL 无条件终止进程
+   15 SIGTERM 尽可能终止进程
+   17 SIGSTOP 无条件停止进程，不是终止
+   18 SIGTSTP 停止或暂停进程，不终止进程
+   19 SIGCONT 继续运行停止的进程
+   - 生成信号 Ctrl+c 会生成SIGINT 信号，并发送给shell中运行的所有进程
+   - 捕获信号 trap commands signals 捕获这些信号会组织用户用ctrl+c来停止进程。
+   - 捕获脚本退出 trap "echo goodbye" exit 捕获脚本的退出
+   - 修改或移除捕获 在脚本不同位置进行不同的捕获处理，只需重新使用trap命令即可、
+     - trap -- SIGINT 删除已设置好的捕获，恢复默认行为加上两个破折号。
+     - trap - 但破折号可以恢复信号的默认行为
+   - 后台模式运行脚本 ./test.sh &
+   - nohup 如果关闭终端会话，后台进程也会退出，nohup可以阻止这种情况，该命令会拦截任何发送给某个命令来停止其运行的信号。
+   -  查看作业 $$ 查看当前正在处理的作业process id ，./test.sh > test.out &作业作为后台进程启动，输出结果到test.out文件
+   - jobs -l 查看作业pid
+   bg +作业号 fg 前台模式重启作业 用ctrl+z 组合挂起前台进程，使用bg将其置入后台进程
+   - 调度谦让度 优先级越高值越低 -20最高优先级 19最低优先级
+   - nice 命令提高进程优先级 nice  -10 ./test.sh -> test.out &
+   - renice 改变系统上已经运行命令的优先级，
+   renice -n 10 -p 1011 (进程id)
+   - at计划执行作业 at [-f filename] time 
+   - 获取作业的输出 at -f test.sh now 
+   - atq 查看等待的作业 会列出作业号 atrm 删除等待中的作业
+   - cron时间表 * * * * * * （分 时  天 月 周）（min hour dayofmouth month dayofweek)
+   三字符的文本值(mon tue wed thu fri sat sun)(1,2,3,4,5,6,0)
+   00 12 * * * if ['date +%d -d tomorrow' = 01 ];then;command 每个月最后一天中午12点执行命令
+   - 构建cron时间表
+   crontab -l 查看所有的时间表，浏览cron目录，如果脚本每天需要执行，将脚本复制到daily目录即可
+  ### 创建函数
+   - function 函数名 获取函数返回值 用echo语句来显示计算的结果，脚本函数使用echo语句返回值。
+   - 函数中使用变量 
+   function fun1{ echo $[ $1 * $2 ]}函数中使用了1,2两个变量，它与脚本主体中的$1和$2不同，要在函数中使用这些值必须在调用函数的时手动传过去、
+   - 函数中处理变量 $value 在函数外定义并被赋值，当函数db1被调用时，该变量及其值在函数中都有效，如果变量在函数中赋予了新值，那么新值依然有效。
+   - 局部变量 local关键字 只能在函数中使用
+   - 数组变量作为函数参数 函数只会取数组变量的第一个值
+   - 创建库，创建包含脚本中所需函数的公用库文件，在用到这些函数的脚本文件中，使用在脚本中运行库文件source命令，. ./test。
+   - 在.bashrc文件中定义函数，shell每次启动都会在主目录下查找这个文件，自动启动这个函数。
+ ### sed和gawl
+  - sed option script file (sed命令) script参数制定了应用于流数据上的单个命令，如果需要多个命令，要么使用-e选项在命令行中指定，要么使用-f选项在单独的文件中指定
+ ### 编写脚本实用工具
+ - 归档 tar -zcf new.tar /wt/server/*.*  创建工作目录归档文件(压缩文件)
+ - 创建归档文件的存放位置 
+ 
